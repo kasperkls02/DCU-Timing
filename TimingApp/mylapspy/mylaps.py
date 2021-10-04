@@ -157,6 +157,7 @@ def decodeMsg(data):
 
 
 
+print("Connecting to AMB with IP: %s Port: %s" % (ip, port))
 s.connect((ip, port))
 
 
@@ -188,7 +189,7 @@ def handleMylapsInput(message):
 
 
 rest = ''
-
+print("Starting main loop")
 while 1:
     print("Ny passing her! rest = " + str(len(rest)))
     message = rest + s.recv(4096)
