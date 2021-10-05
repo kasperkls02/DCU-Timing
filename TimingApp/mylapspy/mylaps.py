@@ -1,10 +1,10 @@
+import os
 import socket
-s = socket.socket()
 
 
 
-ip = "192.168.1.200"
-port = 5403
+ip = os.environ.get('AMB1IP') #sys.argv[1] #"192.168.1.200"
+port = os.environ.get('AMB1Port', 5403)
 
 
 
@@ -22,13 +22,13 @@ def decodeMsg(data):
         "1_17": "bCounter??",
         "1_19": "dPip??",
         "1_20": "bSport",
-      
+
         "2_1": "wNoise",
         "2_6": "bGPS",
         "2_7": "wTemperature",
         "2_10": "bSatInUse",
         "2_12": "bInput Voltage",
-      
+
         "69_2": "sID",
         "77_1": "dCounter??",
         "78_1": "dID??",
@@ -36,11 +36,11 @@ def decodeMsg(data):
         "78_3": "qRTC Time??",
         "78_4": "qUTC Time??",
 }
-  
+
     tor = 0
     tof = 0
     tofdat = []
-  
+
     def tortof2txt():
         if tof == 0x81:
             decoder = str(tofdat[0] | (tofdat[1] << 8) | (tofdat[2] << 16) | (tofdat[3] << 34))
@@ -73,12 +73,12 @@ def decodeMsg(data):
                     returnval[2] = str(val)
                 elif tt == "1_8":
                     returnval[3] = val
-                elif tt == "78_2" or tt == "1_10": #tt == "69_2" or 
+                elif tt == "78_2" or tt == "1_10": #tt == "69_2" or
                     returnval[0] = val.replace("-","")
-                
+
             else:
                 print("Unknown: tt=" + tt + " len=" + str(len(tofdat)))
-                
+
     state = -1
     esc = 0
     for byt in data: # print "state=" + str(state) + " b=" + str(b)
@@ -157,8 +157,8 @@ def decodeMsg(data):
 
 
 
-print("Connecting to AMB with IP: %s Port: %s" % (ip, port))
-s.connect((ip, port))
+#print("Connecting to AMB with IP: %s Port: %s" % (ip, port))
+#s.connect((ip, port))
 
 
 
@@ -187,12 +187,34 @@ def handleMylapsInput(message):
                 battery = repr(flags % 2)
                 print("Chip: " + chip + "; Battery: " + battery)
 
+notConnected = True
+timeout = 10 # seconds
 
 rest = ''
 print("Starting main loop")
 while 1:
+    while notConnected:
+        try:
+            print("Attempting to reconnect to AMB with IP: %s Port: %s" % (ip, port))
+            clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            clientsocket.connect((ip, port))
+            print("Reconnected.")
+            notConnected = False
+        except:
+            print("Attempt failed")
+        try:
+            ready = select.select([clientsocket], [], [], timeout)
+            if not(ready[0]):
+                notConnected = True
+                print("Not Connected")
+                continue
+        except:
+            notConnected = True
+            print("Not Connected")
+            continue
+
     print("Ny passing her! rest = " + str(len(rest)))
-    message = rest + s.recv(4096)
+    message = rest + clientsocket.recv(4096)
     parts = message.split("\x8f")
     partsLen = len(parts)
     for i in range(0,partsLen):
