@@ -1,5 +1,21 @@
 import os
 import socket
+import psycopg2
+
+
+conn = psycopg2.connect(
+        host='db',
+        database="test",
+        user="postgres",
+        password="1234567890")
+
+print(conn.closed)
+sql = """INSERT INTO indskrivning
+         VALUES(%s, %s);"""
+
+cur = conn.cursor()
+cur.execute(sql, ('connectoin',1))
+conn.commit()
 
 
 
@@ -186,6 +202,8 @@ def handleMylapsInput(message):
                 print(flags)
                 battery = repr(flags % 2)
                 print("Chip: " + chip + "; Battery: " + battery)
+                cur.execute(sql, (chip, battery))
+                conn.commit()
 
 notConnected = True
 timeout = 10 # seconds
@@ -213,6 +231,7 @@ while 1:
             print("Not Connected")
             continue
 
+
     print("Ny passing her! rest = " + str(len(rest)))
     message = rest + clientsocket.recv(4096)
     parts = message.split("\x8f")
@@ -222,3 +241,7 @@ while 1:
             rest = parts[i]
             break
         handleMylapsInput(parts[i] + "\x8f")
+
+
+cur.close()
+conn.close()
