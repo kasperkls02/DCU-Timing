@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 ChipCount = input("Indtast antal chips: ")
 NumberStart = input("Indtast første rytternummer: ")
 ChipStart = input("Indtast første chip: ")
