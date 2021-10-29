@@ -1,29 +1,5 @@
 import os
 import socket
-import psycopg2
-
-
-conn = psycopg2.connect(
-        host='db',
-        database="test",
-        user="postgres",
-        password="1234567890")
-
-print(conn.closed)
-sql = """INSERT INTO indskrivning
-         VALUES(%s, %s);"""
-
-cur = conn.cursor()
-cur.execute(sql, ('connectoin',1))
-conn.commit()
-
-
-
-ip = os.environ.get('AMB1IP') #sys.argv[1] #"192.168.1.200"
-port = os.environ.get('AMB1Port', 5403)
-
-
-
 
 def decodeMsg(data):
     returnval = ['','','','','']
@@ -191,6 +167,16 @@ def handleMylapsInput(message):
             chip = val[0]
             strength = val[2]
             flags = val[3]
+            print("val[0]")
+            print(val[0])
+            print("val[1]")
+            print(val[1])
+            print("val[2]")
+            print(val[2])
+            print("val[3]")
+            print(val[3])
+            print("val[4]")
+            print(val[4])
             if not(chip == ''):
                 if flags == '':
                     return
@@ -200,48 +186,25 @@ def handleMylapsInput(message):
                     else:
                         flags = 0
                 print(flags)
-                battery = repr(flags % 2)
+                battery = repr(flags)
                 print("Chip: " + chip + "; Battery: " + battery)
-                cur.execute(sql, (chip, battery))
-                conn.commit()
 
 notConnected = True
 timeout = 10 # seconds
 
-rest = ''
+clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+clientsocket.connect(('192.168.1.200', 5403))
+
+rest = ""
 print("Starting main loop")
 while 1:
-    while notConnected:
-        try:
-            print("Attempting to reconnect to AMB with IP: %s Port: %s" % (ip, port))
-            clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            clientsocket.connect(('192.168.1.200', 5403))
-            print("Reconnected.")
-            notConnected = False
-        except:
-            print("Attempt failed")
-        try:
-            ready = select.select([clientsocket], [], [], timeout)
-            if not(ready[0]):
-                notConnected = True
-                print("Not Connected")
-                continue
-        except:
-            notConnected = True
-            print("Not Connected")
-            continue
-
-
     print("Ny passing her! rest = " + str(len(rest)))
     message = rest + clientsocket.recv(4096)
-    parts = message.split("\x8f")
+    print(message)
+    parts = message.split(b'\x8f')
     partsLen = len(parts)
     for i in range(0,partsLen):
         if i == partsLen - 1:
             rest = parts[i]
             break
-        handleMylapsInput(parts[i] + "\x8f")
-
-
-cur.close()
-conn.close()
+        handleMylapsInput(parts[i] + b'\x8f')
