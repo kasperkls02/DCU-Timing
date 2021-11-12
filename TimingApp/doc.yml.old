@@ -1,0 +1,30 @@
+version: '3'
+services:
+        db:
+                image: postgres
+                restart: unless-stopped
+                environment:
+                        POSTGRES_DB: test
+                        POSTGRES_PASSWORD: 1234567890
+                ports:
+                  - 5432:5432
+                volumes:
+                        - db-mylaps:/var/lib/postgresql/data
+
+        adminer:
+                image: adminer
+                restart: always
+                ports:
+                  - 1000:8080
+        mylaps:
+                image: mylaps
+                restart: unless-stopped
+                depends_on:
+                  - db
+                environment:
+                  - AMB1IP=192.168.1.200
+                  - PYTHONUNBUFFERED=1
+
+
+volumes:
+        db-mylaps:
