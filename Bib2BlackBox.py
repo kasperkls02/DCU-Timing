@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 ChipCount = input("Indtast antal chips: ")
-NumberStart = input("Indtast første rytternummer: ")
-ChipStart = input("Indtast første chip: ")
+NumberStart = input("Indtast første rytter-chip: ")
+ChipStart = input("Indtast første BB-chip: ")
 FileName = "B2BB-" + str(ChipCount) + "-" + str(NumberStart) + "-" + str(ChipStart) + ".csv"
 
 f = open(FileName, "w")
